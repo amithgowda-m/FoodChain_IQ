@@ -1,40 +1,92 @@
-import React from 'react';
-import './SensorReadings.css';
+import React, { useState } from 'react';
+import axios from 'axios';
 
-function SensorReadings() {
-  const readings = [
-    { time: "10:00 AM", temperature: "4.1°C", humidity: "65%" },
-    { time: "10:30 AM", temperature: "4.3°C", humidity: "63%" },
-  ];
+const SensorReadings = () => {
+  const [productType, setProductType] = useState('');
+  const [prediction, setPrediction] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!productType.trim()) {
+      setError("Please enter a product type");
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      // 🔁 Send only product_type to backend
+      const response = await axios.post('http://localhost:8000/api/v1/predict', {
+        product_type: productType,
+      });
+
+      // ✅ Get prediction result
+      setPrediction(response.data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to get prediction from server.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="sensor-container">
-      <h2>Sensor Readings</h2>
-      <table className="sensor-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Temperature</th>
-            <th>Humidity</th>
-          </tr>
-        </thead>
-        <tbody>
-          {readings.map((reading, index) => (
-            <tr key={index}>
-              <td>{reading.time}</td>
-              <td>{reading.temperature}</td>
-              <td>{reading.humidity}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+      <h2>Enter Product Type</h2>
+
+      <form onSubmit={handleSubmit}>
+        <label>
+          Product Type:
+          <input
+            type="text"
+            value={productType}
+            onChange={(e) => setProductType(e.target.value)}
+            placeholder="e.g., Fruits"
+            style={{ marginLeft: '10px', padding: '5px', width: '200px' }}
+          />
+        </label>
+        <br /><br />
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: loading ? '#aaa' : '#007bff',
+            color: 'white',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          {loading ? 'Predicting...' : 'Predict Spoilage Risk'}
+        </button>
+      </form>
+
+      {/* Show prediction */}
+      {prediction && (
+        <div style={{
+          marginTop: '30px',
+          padding: '20px',
+          backgroundColor: prediction.prediction === 'Spoiled' ? '#f8d7da' : '#d4edda',
+          color: prediction.prediction === 'Spoiled' ? '#721c24' : '#155724',
+          borderRadius: '5px',
+          fontWeight: 'bold'
+        }}>
+          <h3>Prediction: {prediction.prediction}</h3>
+          <p><strong>Sensor Data Used:</strong></p>
+          <ul>
+            <li>🌡️ Temperature: {prediction.sensor_data.temperature}°C</li>
+            <li>💧 Humidity: {prediction.sensor_data.humidity}%</li>
+            <li>🧊 Shock Level: {prediction.sensor_data.shock_level}g</li>
+          </ul>
+        </div>
+      )}
+
+      {/* Show error */}
+      {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
     </div>
   );
-}
+};
 
 export default SensorReadings;
-<div className="sensor-table-container">
-  <table className="sensor-table">
-    {/* existing code */}
-  </table>
-</div>

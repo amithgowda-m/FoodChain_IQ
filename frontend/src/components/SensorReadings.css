@@ -1,41 +1,54 @@
-.sensor-container {
-  padding: 40px;
-  background-color: #f4faff;
-  font-family: 'Segoe UI', sans-serif;
+/* src/components/SensorReadings.css */
+.sensor-readings {
+  padding: 20px;
+  font-family: Arial, sans-serif;
 }
 
-.sensor-container h2 {
-  text-align: center;
-  color: #1976d2;
-  margin-bottom: 30px;
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
 }
 
-.sensor-table {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  border-collapse: collapse;
-  background-color: #ffffff;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+label {
+  margin-bottom: 10px;
 }
 
-.sensor-table th, .sensor-table td {
+input {
+  padding: 5px;
+  margin-top: 5px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.prediction {
+  margin-top: 20px;
   padding: 15px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
+  border-radius: 5px;
 }
 
-.sensor-table th {
-  background-color: #e3f2fd;
-  color: #333;
+.safe {
+  background-color: #d4edda;
+  color: #155724;
 }
-.sensor-table-container,
-.truck-table-container {
-  max-height: 400px;
-  overflow-y: auto;
-  margin: 0 auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+.spoiled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
 }
