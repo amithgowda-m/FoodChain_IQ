@@ -1,53 +1,104 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from lightgbm import LGBMClassifier
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import classification_report, confusion_matrix
-import seaborn as sns
+import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import joblib
 
-# Load dataset
-df = pd.read_csv("balanced_13k_dataset.csv")
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (classification_report, confusion_matrix, 
+                             accuracy_score, precision_score, 
+                             recall_score, f1_score)
 
-# Encode product_id using LabelEncoder
-le = LabelEncoder()
-df["product_encoded"] = le.fit_transform(df["product_id"])
+# -----------------------------
+# 1. Load Dataset
+# -----------------------------
+df = pd.read_csv('foodchain_iq_dataset_5k.csv')
 
-# Features and target
-X = df[["product_encoded", "temperature", "humidity", "shock_level", "duration_hours"]]
-y = df["spoilage_risk_level"]
+# Optional: If duration is available
+# df['Duration (hrs)'] = (pd.to_datetime(df['End Time']) - pd.to_datetime(df['Start Time'])).dt.total_seconds() / 3600
 
-# Train-test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+# -----------------------------
+# 2. One-Hot Encode Product Type
+# -----------------------------
+df_encoded = pd.get_dummies(df[['Product Type']], prefix='Product', drop_first=True)
 
-# Train LightGBM model
-model = LGBMClassifier(
-    objective='multiclass',
-    num_class=3,
-    n_estimators=200,
-    learning_rate=0.05,
-    max_depth=8,
-    class_weight='balanced'
+# -----------------------------
+# 3. Combine Features
+# -----------------------------
+X = pd.concat([
+    df_encoded,
+    df[['Temperature (°C)', 'Humidity (%)', 'Shock Level (g)']]
+    # , df[['Duration (hrs)']]   # Uncomment if duration exists
+], axis=1)
+
+y = df['Risk Level']
+
+# -----------------------------
+# 4. Train-Test Split
+# -----------------------------
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-model.fit(X_train, y_train)
+# -----------------------------
+# 5. Feature Scaling
+# -----------------------------
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-# Evaluate
-y_pred = model.predict(X_test)
+# -----------------------------
+# 6. Train Random Forest Model
+# -----------------------------
+model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
+model.fit(X_train_scaled, y_train)
 
-print("📊 Classification Report:")
-print(classification_report(y_test, y_pred))
+# -----------------------------
+# 7. Make Predictions
+# -----------------------------
+y_pred = model.predict(X_test_scaled)
 
-print("📈 Confusion Matrix:")
+# -----------------------------
+# 8. Evaluation Metrics
+# -----------------------------
+print("🎯 Accuracy:", accuracy_score(y_test, y_pred))
+print("🔍 Precision (macro):", precision_score(y_test, y_pred, average='macro'))
+print("🧾 Recall (macro):", recall_score(y_test, y_pred, average='macro'))
+print("📊 F1 Score (macro):", f1_score(y_test, y_pred, average='macro'))
+
+print("\n📋 Classification Report:")
+print(classification_report(y_test, y_pred, target_names=['Safe (0)', 'Spoiled (1)']))
+
+# Confusion Matrix
 cm = confusion_matrix(y_test, y_pred)
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=[0, 1, 2], yticklabels=[0, 1, 2])
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.title("Confusion Matrix")
+plt.figure(figsize=(6, 4))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Safe', 'Predicted Spoiled'],
+            yticklabels=['Actual Safe', 'Actual Spoiled'])
+plt.title('Confusion Matrix')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.tight_layout()
 plt.show()
 
-# Save model and encoder
-joblib.dump(model, "spoilage_model.txt")
-joblib.dump(le, "product_encoder.pkl")
-print("\n🧠 Model and encoder saved!")
+# -----------------------------
+# 9. Feature Importance Plot
+# -----------------------------
+importances = model.feature_importances_
+feature_names = X.columns
+
+plt.figure(figsize=(8, 6))
+sns.barplot(x=importances, y=feature_names)
+plt.title('Feature Importances')
+plt.xlabel('Importance')
+plt.ylabel('Feature')
+plt.tight_layout()
+plt.show()
+
+# -----------------------------
+# 10. Save Model & Scaler
+# -----------------------------
+joblib.dump(model, 'rf_spoilage_model.pkl')
+joblib.dump(scaler, 'scaler.pkl')
+print("✅ Model and scaler saved!")
