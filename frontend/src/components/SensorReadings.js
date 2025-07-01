@@ -10,20 +10,18 @@ const SensorReadings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!productType.trim()) {
-      setError("Please enter a product type");
+      setError("Please select a product type");
       return;
     }
 
     setLoading(true);
     setError('');
     try {
-      // 🔁 Send only product_type to backend
       const response = await axios.post('http://localhost:8000/api/v1/predict', {
         product_type: productType,
       });
 
-      // ✅ Get prediction result
-      setPrediction(response.data);
+      setPrediction(response.data); // Set full response
     } catch (err) {
       console.error(err);
       setError("Failed to get prediction from server.");
@@ -34,36 +32,48 @@ const SensorReadings = () => {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-      <h2>Enter Product Type</h2>
+      <h2>Select Product Type</h2>
 
       <form onSubmit={handleSubmit}>
         <label>
           Product Type:
-          <input
-            type="text"
+          <select
             value={productType}
             onChange={(e) => setProductType(e.target.value)}
-            placeholder="e.g., Fruits"
-            style={{ marginLeft: '10px', padding: '5px', width: '200px' }}
-          />
+            style={{
+              marginLeft: '10px',
+              padding: '5px',
+              width: '200px',
+              fontSize: '16px'
+            }}
+          >
+            <option value="">-- Select --</option>
+            <option value="Fruits">Fruits</option>
+            <option value="Vegetables">Vegetables</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Meat">Meat</option>
+            <option value="Milk">Milk</option>
+          </select>
         </label>
+
         <br /><br />
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !productType}
           style={{
             padding: '10px 20px',
             backgroundColor: loading ? '#aaa' : '#007bff',
             color: 'white',
             border: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            fontSize: '16px'
           }}
         >
           {loading ? 'Predicting...' : 'Predict Spoilage Risk'}
         </button>
       </form>
 
-      {/* Show prediction */}
+      {/* Prediction Result */}
       {prediction && (
         <div style={{
           marginTop: '30px',
@@ -83,7 +93,7 @@ const SensorReadings = () => {
         </div>
       )}
 
-      {/* Show error */}
+      {/* Error Message */}
       {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
     </div>
   );

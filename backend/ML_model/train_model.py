@@ -3,26 +3,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
-
+import os  # ✅ Added to create directory if not present
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import (classification_report, confusion_matrix, 
-                             accuracy_score, precision_score, 
-                             recall_score, f1_score)
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 
 # -----------------------------
 # 1. Load Dataset
 # -----------------------------
 df = pd.read_csv('foodchain_iq_dataset_5k.csv')
 
-# Optional: If duration is available
-# df['Duration (hrs)'] = (pd.to_datetime(df['End Time']) - pd.to_datetime(df['Start Time'])).dt.total_seconds() / 3600
-
 # -----------------------------
 # 2. One-Hot Encode Product Type
 # -----------------------------
-df_encoded = pd.get_dummies(df[['Product Type']], prefix='Product', drop_first=True)
+df_encoded = pd.get_dummies(df[['Product Type']], prefix='Product', drop_first=False)
 
 # -----------------------------
 # 3. Combine Features
@@ -30,7 +25,6 @@ df_encoded = pd.get_dummies(df[['Product Type']], prefix='Product', drop_first=T
 X = pd.concat([
     df_encoded,
     df[['Temperature (°C)', 'Humidity (%)', 'Shock Level (g)']]
-    # , df[['Duration (hrs)']]   # Uncomment if duration exists
 ], axis=1)
 
 y = df['Risk Level']
@@ -74,7 +68,8 @@ print(classification_report(y_test, y_pred, target_names=['Safe (0)', 'Spoiled (
 # Confusion Matrix
 cm = confusion_matrix(y_test, y_pred)
 plt.figure(figsize=(6, 4))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Predicted Safe', 'Predicted Spoiled'],
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Predicted Safe', 'Predicted Spoiled'],
             yticklabels=['Actual Safe', 'Actual Spoiled'])
 plt.title('Confusion Matrix')
 plt.xlabel('Predicted')
@@ -97,8 +92,16 @@ plt.tight_layout()
 plt.show()
 
 # -----------------------------
-# 10. Save Model & Scaler
+# 10. Save Model, Scaler, and Column Order
 # -----------------------------
-joblib.dump(model, 'rf_spoilage_model.pkl')
-joblib.dump(scaler, 'scaler.pkl')
-print("✅ Model and scaler saved!")
+# ✅ Ensure ML_model directory exists before saving
+# ✅ Ensure artifacts directory exists in backend/ML_model/artifacts
+save_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "artifacts")
+os.makedirs(save_dir, exist_ok=True)
+
+joblib.dump(model, os.path.join(save_dir, 'rf_spoilage_model.pkl'))
+joblib.dump(scaler, os.path.join(save_dir, 'scaler.pkl'))
+joblib.dump(X_train.columns, os.path.join(save_dir, 'X_train_columns.pkl'))
+
+print("✅ Model, scaler, and training columns saved in 'ML_model/artifacts/'")
+
