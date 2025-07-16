@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const SensorReadings = () => {
@@ -6,6 +6,8 @@ const SensorReadings = () => {
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,6 +18,7 @@ const SensorReadings = () => {
 
     setLoading(true);
     setError('');
+
     try {
       const response = await axios.post('http://localhost:8000/api/v1/predict', {
         product_type: productType,
@@ -29,6 +32,23 @@ const SensorReadings = () => {
       setLoading(false);
     }
   };
+
+  // Fetch historical predictions
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/api/v1/history");
+        setHistory(res.data.history || []);
+      } catch (err) {
+        console.error("Failed to fetch history:", err);
+      }
+    };
+
+    fetchHistory(); // Initial fetch
+    const interval = setInterval(fetchHistory, 5000); // Refresh every 5 sec
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial' }}>
@@ -95,8 +115,68 @@ const SensorReadings = () => {
 
       {/* Error Message */}
       {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+
+      {/* Show/Hide Prediction History Button */}
+      <div style={{ marginTop: '40px' }}>
+        <button onClick={() => setShowHistory(!showHistory)}>
+          {showHistory ? "Hide Prediction History" : "Show Prediction History"}
+        </button>
+
+        {/* Prediction History Table */}
+        {showHistory && (
+          <div style={{ marginTop: '20px' }}>
+            <h3>📜 Prediction History</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+              <thead>
+                <tr style={{ background: '#f0f0f0' }}>
+                  <th style={tableHeaderStyle}>ID</th>
+                  <th style={tableHeaderStyle}>Product</th>
+                  <th style={tableHeaderStyle}>Prediction</th>
+                  <th style={tableHeaderStyle}>Temperature (°C)</th>
+                  <th style={tableHeaderStyle}>Humidity (%)</th>
+                  <th style={tableHeaderStyle}>Shock Level (g)</th>
+                  <th style={tableHeaderStyle}>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((entry, index) => (
+                  <tr key={index} style={tableRowStyle(entry.prediction)}>
+                    <td style={tableCellStyle}>{entry.id}</td>
+                    <td style={tableCellStyle}>{entry.product_type}</td>
+                    <td style={{
+                      ...tableCellStyle,
+                      color: entry.prediction === 'Spoiled' ? '#721c24' : '#155724',
+                      fontWeight: 'bold'
+                    }}>{entry.prediction}</td>
+                    <td style={tableCellStyle}>{entry.temperature}</td>
+                    <td style={tableCellStyle}>{entry.humidity}</td>
+                    <td style={tableCellStyle}>{entry.shock_level}</td>
+                    <td style={tableCellStyle}>{new Date(entry.timestamp).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+// Styles for the table
+const tableHeaderStyle = {
+  border: '1px solid #ccc',
+  padding: '8px',
+  textAlign: 'left'
+};
+
+const tableCellStyle = {
+  border: '1px solid #eee',
+  padding: '8px'
+};
+
+const tableRowStyle = (prediction) => ({
+  borderBottom: '1px solid #ddd'
+});
 
 export default SensorReadings;
