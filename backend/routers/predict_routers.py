@@ -4,34 +4,38 @@ from ..models import SensorData, SensorDataCreate, SensorDataRead
 from ..database import get_db
 from ..ML_model import predict_risk
 
-# ✅ Twilio for SMS
-from twilio.rest import Client
+import smtplib
+from email.message import EmailMessage
 
-# ✅ Twilio credentials (replace with your actual info)
-ACCOUNT_SID = 'YOUR_TWILIO_SID'
-AUTH_TOKEN = 'YOUR_TWILIO_AUTH'
-TWILIO_FROM = '+1234567890'       # Your Twilio phone number
-TO_NUMBER = '+91XXXXXXXXXX'       # Recipient number
+# ✅ Email settings
+SENDER_EMAIL = "angadgotab.cs24@rvce.edu.in"
+SENDER_PASSWORD = "Safeway$1"  # Use an app password (for Gmail with 2FA)
+RECIPIENT_EMAIL = "amithgowdam.cs24@rvce.edu.in"
 
 router = APIRouter(prefix="/predict", tags=["Spoilage Prediction"])
 
-def send_sms_alert(risk_level, data):
-    client = Client(ACCOUNT_SID, AUTH_TOKEN)
-    msg = (
-        f"⚠️ FoodChain IQ Alert:\n"
-        f"Prediction: {risk_level.upper()}.\n"
-        f"Temp: {data.temperature}°C, Humidity: {data.humidity}%"
+def send_email_alert(risk_level, data):
+    subject = "⚠️ FoodChain IQ Spoilage Alert"
+    body = (
+        f"Food spoilage has been detected.\n\n"
+        f"Prediction: {risk_level.upper()}\n"
+        f"Temperature: {data.temperature}°C\n"
+        f"Humidity: {data.humidity}%\n"
     )
 
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = RECIPIENT_EMAIL
+    msg.set_content(body)
+
     try:
-        message = client.messages.create(
-            body=msg,
-            from_=TWILIO_FROM,
-            to=TO_NUMBER
-        )
-        print(f"SMS sent: {message.sid}")
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(SENDER_EMAIL, SENDER_PASSWORD)
+            smtp.send_message(msg)
+            print("Email alert sent.")
     except Exception as e:
-        print(f"Failed to send SMS: {e}")
+        print(f"Failed to send email: {e}")
 
 @router.post("/risk")
 def predict_spoilage(data: SensorDataCreate, db: Session = Depends(get_db)) -> dict:
@@ -40,10 +44,10 @@ def predict_spoilage(data: SensorDataCreate, db: Session = Depends(get_db)) -> d
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # ✅ Send SMS alert after prediction
-    send_sms_alert(risk_level, data)
+    # ✅ Send email alert after prediction
+    send_email_alert(risk_level, data)
 
-    # ✅ Save to DB
+    # ✅ Save result in DB
     db_data = SensorData(**data.dict(), risk_prediction=risk_level)
     db.add(db_data)
     db.commit()
