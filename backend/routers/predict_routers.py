@@ -8,8 +8,8 @@ import smtplib
 from email.message import EmailMessage
 
 # ✅ Email settings
-SENDER_EMAIL = "angadgotab.cs24@rvce.edu.in"
-SENDER_PASSWORD = "Safeway$1"  # Use an app password (for Gmail with 2FA)
+SENDER_EMAIL = "foodchainiq@gmail.com"
+SENDER_PASSWORD = "1234Abcd"  # Use an app password (for Gmail with 2FA)
 RECIPIENT_EMAIL = "amithgowdam.cs24@rvce.edu.in"
 
 router = APIRouter(prefix="/predict", tags=["Spoilage Prediction"])
