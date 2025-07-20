@@ -4,8 +4,8 @@
 #include "MPU6050_tockn.h"
 
 // === Wi-Fi Credentials ===
-const char* ssid = "  ";     // Replace with your Wi-Fi name
-const char* password = " ";      // Replace with your Wi-Fi password
+const char* ssid = "iQOO Neo9 Pro";     // Replace with your Wi-Fi name
+const char* password = "12345678";      // Replace with your Wi-Fi password
 
 // === DHT22 Sensor Setup ===
 #define DHTPIN 18         // GPIO pin connected to DHT22
