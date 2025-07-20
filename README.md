@@ -57,7 +57,7 @@ Here you go, my friend — your clean, beautiful **`README.md` section** for **�
 ### ✅ 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/FoodChain_IQ.git
+git clone https://github.com/amithgowda-m/FoodChain_IQ.git
 cd FoodChain_IQ
 ```
 
