@@ -1,28 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import product, truck, sensors
-from database import create_db  # ✅ Import DB setup function
+from routers.predict import router as predict_router
 
 app = FastAPI()
 
-# ✅ Initialize the database tables
-create_db()
-
-# ✅ Enable CORS for frontend-backend communication
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can restrict to ["http://localhost:3001"] for security
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ✅ Include all route handlers
-app.include_router(product.router)
-app.include_router(truck.router)
-app.include_router(sensors.router)
+# Include prediction router
+app.include_router(predict_router, prefix="/api/v1")
 
-# ✅ Root test endpoint
+# ✅ Add this new route
 @app.get("/")
-def root():
-    return {"message": "FastAPI backend is working fine 🔥"}
+def read_root():
+    return {"message": "Welcome to Food Spoilage Prediction API"}
