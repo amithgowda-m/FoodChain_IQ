@@ -15,24 +15,6 @@
 
 ---
 
-## 📁 Folder Structure
-
-FoodChain_IQ/
-├── backend/
-│ ├── main.py
-│ ├── config.py
-│ └── ML_model/
-│ ├── train_model.py
-│ └── artifacts/
-│ ├── rf_spoilage_model.pkl
-│ ├── scaler.pkl
-│ └── X_train_columns.pkl
-├── frontend/ # (React-based frontend)
-│ └── ... # UI for monitoring trucks
-├── foodchain_iq_dataset_5k.csv # Labeled sensor dataset
-└── README.md # This file
-
-
 ## 📊 Dataset Details
 
 The dataset (`foodchain_iq_dataset_5k.csv`) contains:
