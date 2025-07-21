@@ -1,12 +1,13 @@
-from sqlmodel import SQLModel, create_engine, Session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import Base
 
-# SQLite file-based DB
-sqlite_url = "sqlite:///./products.db"
-engine = create_engine(sqlite_url, echo=True)
+engine = create_engine('sqlite:///products.db')
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def create_db():
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-    with Session(engine) as session:
-        yield session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
