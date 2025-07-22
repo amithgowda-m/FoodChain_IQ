@@ -8,8 +8,7 @@
 
 - 🌡️ Real-time monitoring of **Temperature**, **Humidity**, and **Shock Level**
 - 🔍 Machine Learning model (Random Forest) for spoilage risk prediction
-- 🧾 Multi-class classification: `Safe (0)`, `At Risk (1)`, `Spoiled (2)`
-- 📉 Visualizations: Confusion Matrix, Feature Importance
+- 🧾 Multi-class classification: `Safe (0)`, `At Risk (1)`
 - ⚙️ Scalable and FastAPI-ready backend
 - 📊 Model, scaler, and training column export using `joblib`
 
@@ -22,7 +21,7 @@ The dataset (`foodchain_iq_dataset_5k.csv`) contains:
 - `Temperature (°C)`
 - `Humidity (%)`
 - `Shock Level (g)`
-- `Risk Level` (0: Safe, 1: At Risk, 2: Spoiled)
+- `Risk Level` (0: Safe, 1:Spoiled)
 
 ---
 
@@ -46,13 +45,6 @@ Artifacts are saved in `backend/ML_model/artifacts/`:
 - `X_train_columns.pkl`
 
 ---
-
-## 🚀 How to Run
-Here you go, my friend — your clean, beautiful **`README.md` section** for **“How to Run the Project”** (ready to paste directly):
-
----
-
-## 🚀 How to Run the Project
 
 ### ✅ 1. Clone the Repository
 
